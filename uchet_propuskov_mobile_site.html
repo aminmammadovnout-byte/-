@@ -171,12 +171,41 @@ function selectStudent(n){
  document.getElementById("results").style.display="none"; document.getElementById("mobileHint").style.display="none"; renderStudent();
 }
 function renderStudent(){
- const v=document.getElementById("studentView");
- if(!selectedStudent){v.innerHTML='<div class="notice">Выбери своё имя из списка — здесь появятся только твои пропуски.</div>';return}
- const d=state.data[selectedStudent]||{};
- let s=`<div class="student-head"><h2>${esc(selectedStudent)}</h2><div class="total"><span class="badge ${cls(total(selectedStudent))}">${total(selectedStudent)} ч.</span></div></div>`;
- s+=Object.entries(d).map(([sub,n])=>`<div class="subject"><span>${esc(sub)}</span><span class="num">${n}</span></div>`).join("");
- v.innerHTML=s;
+const v = document.getElementById("studentView");
+
+if(!selectedStudent){
+v.innerHTML = '<div class="notice">Выбери своё имя из списка — здесь появятся только твои пропуски.</div>';
+return;
+}
+
+const d = state.data[selectedStudent] || {};
+const statuses = state.statuses[selectedStudent] || {};
+
+let s = `
+<div class="student-head">
+<h2>${esc(selectedStudent)}</h2>
+<div class="total">
+<span class="badge ${cls(total(selectedStudent))}">
+${total(selectedStudent)} ч
+</span>
+</div>
+</div>
+`;
+
+s += Object.entries(d).map(([sub,n]) => {
+const limit = state.limits[sub] ?? "—";
+const status = statuses[sub] || "Норма";
+
+return `
+<div class="subject">
+<span><b>${esc(sub)}</b></span>
+<span class="num">${n} / ${limit} ч</span>
+<span class="status">${esc(status)}</span>
+</div>
+`;
+}).join("");
+
+v.innerHTML = s;
 }
 function login(){
  if(document.getElementById("password").value===ADMIN_PASSWORD){
