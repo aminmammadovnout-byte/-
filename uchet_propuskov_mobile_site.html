@@ -141,7 +141,7 @@ function save() {
 try {
 localStorage.setItem("attendanceData", JSON.stringify(state));
 } catch(e) {}
-}f
+}
 
 function total(name){return Object.values(state.data[name]||{}).reduce((a,b)=>a+(Number(b)||0),0)}
 function cls(n){return n===0?"zero":n<=4?"mid":"high"}
