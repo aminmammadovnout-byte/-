@@ -240,10 +240,21 @@ function renderStudent(){
   let s=`<div class="student-head"><h2>${esc(selectedStudent)}</h2><div class="total"><span class="badge ${cls(total(selectedStudent))}">${total(selectedStudent)} ч.</span></div></div>`;
 
   s+=Object.entries(d).map(([sub,n])=>{
-    const limit=state.limits?.[sub];
-    const status=statuses[sub]||"Норма";
-    const statusClass=status==="Лимит превышен"?"status-over":status==="Близко к лимиту"?"status-near":"status-normal";
-    const limitText=limit!=null?` / ${limit} ч.`:"";
+   const limit=state.limits?.[sub];
+const subjectActive = state.subjectStatus?.[sub] !== false;
+
+const status = !subjectActive
+? "Дисциплина завершена"
+: (statuses[sub] || "Норма");
+
+const statusClass =
+status==="Лимит превышен"
+? "status-over"
+: status==="Близко к лимиту"
+? "status-near"
+: "";
+
+const limitText = limit!=null ? ` / ${limit} ч.` : "";
     return `<div class="subject">
       <div class="subject-info">
         <span class="subject-name">${esc(sub)}</span>
