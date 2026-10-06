@@ -147,6 +147,15 @@ async function loadFromSupabase(){
   const {data,error}=await db.from("attendance").select("id,student_name,date,present,subject,hours,limit,status").order("id");
   if(error) throw error;
   rows=data||[];
+  const {data: subjectRows, error: subjectError} =
+await db.from("subjects").select("subject,is_active");
+
+if(subjectError) throw subjectError;
+
+state.subjectStatus = {};
+(subjectRows || []).forEach(x => {
+state.subjectStatus[x.subject] = x.is_active;
+})
   if(rows.length){
     const remote=rebuildState(rows);
     if(remote){state=remote;save();dbReady=true;renderStudent();if(loggedIn)renderAdmin();return;}
