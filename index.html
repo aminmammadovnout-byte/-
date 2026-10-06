@@ -262,15 +262,64 @@ function login(){
   }else document.getElementById("loginError").textContent="Неверный пароль.";
 }
 function logout(){loggedIn=false;document.getElementById("loginBox").classList.remove("hidden");document.getElementById("adminPanel").classList.add("hidden");document.getElementById("password").value=""}
-function renderAdmin(){
-  let h='<div class="tablewrap"><table><thead><tr><th>Студент</th>';
-  state.subjects.forEach(s=>h+=`<th>${esc(s)}</th>`);h+='<th>Итого</th></tr></thead><tbody>';
-  names().forEach(n=>{
-    h+=`<tr><td><b>${esc(n)}</b></td>`;
-    state.subjects.forEach(s=>h+=`<td><div class="controls"><button class="mini" onclick="change('${js(n)}','${js(s)}',-1)">−</button><span class="num">${state.data[n][s]||0}</span><button class="mini" onclick="change('${js(n)}','${js(s)}',1)">+</button></div></td>`);
-    h+=`<td><b>${total(n)}</b></td></tr>`;
-  });
-  h+='</tbody></table></div>';document.getElementById("adminTable").innerHTML=h;
+async function toggleSubjectStatus(subject){
+const current = state.subjectStatus?.[subject] !== false;
+const newStatus = !current;
+
+const { error } = await db
+.from("subjects")
+.update({ is_active: newStatus })
+.eq("subject", subject);
+
+if(error){
+alert("Не удалось изменить статус: " + error.message);
+return;
+}
+
+if(!state.subjectStatus) state.subjectStatus = {};
+state.subjectStatus[subject] = newStatus;
+
+renderAdmin();
+renderStudent();
+}
+  function renderAdmin(){
+let h='<div class="tablewrap"><table><thead><tr><th>Студент</th>';
+
+state.subjects.forEach(s=>{
+const active = state.subjectStatus?.[s] !== false;
+h+=`<th>${esc(s)}
+<div class="controls">
+<button class="${active ? 'mini' : 'danger'}"
+onclick="toggleSubjectStatus('${js(s)}')">
+${active ? 'Завершить' : 'Возобновить'}
+</button>
+</div>
+</th>`;
+});
+
+h+='<th>Итого</th></tr></thead><tbody>';
+
+names().forEach(n=>{
+h+=`<tr><td><b>${esc(n)}</b></td>`;
+
+state.subjects.forEach(s=>{
+h+=`<td><div class="controls">`;
+
+if(state.subjectStatus?.[s] === false){
+h+=`<span class="status">Завершена</span>`;
+}else{
+h+=`<button class="mini" onclick="change('${js(n)}','${js(s)}',-1)">−</button>`;
+h+=`<button class="mini" onclick="change('${js(n)}','${js(s)}',1)">+</button>`;
+}
+
+h+=`</div></td>`;
+});
+
+h+=`<td><b>${total(n)}</b></td></tr>`;
+});
+
+h+='</tbody></table></div>';
+document.getElementById("adminTable").innerHTML=h;
 }
 const searchInput=document.getElementById("studentSearch");
 searchInput.addEventListener("input",filterNames);
